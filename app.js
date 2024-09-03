@@ -1,237 +1,158 @@
-const { Component } = React;
-const ReactDOM = window.ReactDOM;
-
-class FormulaireUtilisateur extends Component {
+class JeemaCoder extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      prenom: '',
-      nom: '',
-      email: '',
-      telephone: '',
-      idModifier: null
+      prenomInput: '',
+      nomInput: '',
+      emailInput: '',
+      telephoneInput: '',
+      coders: [],
+      editingIndex: -1,
     };
-  }
-  gererChangement = (e) => {
-    this.setState({ [e.target.id]: e.target.value });
-  };
-
-  gererSoumission = (e) => {
-    e.preventDefault(); 
-
-    const { prenom, nom, email, telephone, idModifier } = this.state;
-
-    if (idModifier) {
-      this.props.onModifierUtilisateur({
-        id: idModifier,
-        prenom,
-        nom,
-        email,
-        telephone
-      });
-      this.setState({
-        prenom: '',
-        nom: '',
-        email: '',
-        telephone: '',
-        idModifier: null
-      });
-    } else {
-      this.props.onAjouterUtilisateur({
-        id: Date.now(),
-        prenom,
-        nom,
-        email,
-        telephone
-      });
-      this.setState({
-        prenom: '',
-        nom: '',
-        email: '',
-        telephone: ''
-      });
-    }
-  };
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.utilisateur !== this.props.utilisateur) {
-      const { utilisateur } = this.props;
-      if (utilisateur) {
-        this.setState({
-          prenom: utilisateur.prenom,
-          nom: utilisateur.nom,
-          email: utilisateur.email,
-          telephone: utilisateur.telephone,
-          idModifier: utilisateur.id
-        });
-      }
-    }
+    this.handleClick = this.handleClick.bind(this);
+    this.handleEdit = this.handleEdit.bind(this);
+    this.handleDelete = this.handleDelete.bind(this);
+    this.handleUpdate = this.handleUpdate.bind(this);
   }
 
-  render() {
-    const { prenom, nom, email, telephone, idModifier } = this.state;
-
-    return (
-      <form onSubmit={this.gererSoumission} className="shadow p-4 mb-4 bg-light">
-        <div className='d-flex gap-3'>
-        <div className="mb-3 w-75">
-          <label htmlFor="prenom" className="form-label">Prénom</label>
-          <input
-            type="text"
-            id="prenom"
-            className="form-control"
-            value={prenom}
-            onChange={this.gererChangement}
-            required
-          />
-        </div>
-        <div className="mb-3 w-75">
-          <label htmlFor="nom" className="form-label">Nom</label>
-          <input
-            type="text"
-            id="nom"
-            className="form-control"
-            value={nom}
-            onChange={this.gererChangement}
-            required
-          />
-        </div>
-        </div>
-        <div className='d-flex gap-3'>
-          <div className="mb-3 w-75">
-            <label htmlFor="email" className="form-label">Email</label>
-            <input
-              type="email"
-              id="email"
-              className="form-control"
-              value={email}
-              onChange={this.gererChangement}
-              required
-            />
-          </div>
-          <div className="mb-3 w-75">
-            <label htmlFor="telephone" className="form-label">Téléphone</label>
-            <input
-              type="tel"
-              id="telephone"
-              className="form-control"
-              value={telephone}
-              onChange={this.gererChangement}
-              required
-            />
-          </div>
-        </div>
-        <button type="submit" className={`btn ${idModifier ? 'btn-warning' : 'btn-success'}`}>
-          {idModifier ? 'Modifier' : 'Ajouter'}
-        </button>
-      </form>
-    );
-  }
-}
-
-//beneen Composant TableauUtilisateur pour afficher la liste des utilisateurs
-class TableauUtilisateur extends Component {
-  render() {
-    const { utilisateurs, onModifier, onSupprimer } = this.props;
-
-    return (
-      <table className="table table-striped table-hover">
-        <thead>
-          <tr>
-            <th>Prénom</th>
-            <th>Nom</th>
-            <th>Email</th>
-            <th>Téléphone</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {utilisateurs.map((utilisateur) => (
-            <tr key={utilisateur.id}>
-              <td>{utilisateur.prenom}</td>
-              <td>{utilisateur.nom}</td>
-              <td>{utilisateur.email}</td>
-              <td>{utilisateur.telephone}</td>
-              <td>
-                <button className="btn btn-primary" onClick={() => onModifier(utilisateur.id)}>
-                  Modifier
-                </button>
-                <button className="btn btn-danger ms-2" onClick={() => onSupprimer(utilisateur.id)}>
-                  Supprimer
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  }
-}
-
-// Composant principal  de l'application
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      utilisateurs: JSON.parse(localStorage.getItem("utilisateurs")) || [],
-      utilisateurAEditer: null
+  handleClick() {
+    const newCoder = {
+      prenom: this.state.prenomInput,
+      nom: this.state.nomInput,
+      email: this.state.emailInput,
+      telephone: this.state.telephoneInput,
     };
+    this.setState({ coders: [newCoder, ...this.state.coders] });
+    this.resetForm();
   }
 
-  ajouterUtilisateur = (utilisateur) => {
-    this.setState(
-      (prevState) => ({
-        utilisateurs: [...prevState.utilisateurs, utilisateur]
-      }),
-      () => localStorage.setItem("utilisateurs", JSON.stringify(this.state.utilisateurs))
-    );
-  };
+  handleEdit(index) {
+    const coder = this.state.coders[index];
+    this.setState({
+      prenomInput: coder.prenom,
+      nomInput: coder.nom,
+      emailInput: coder.email,
+      telephoneInput: coder.telephone,
+      editingIndex: index,
+    });
+  }
 
-  modifierUtilisateur = (utilisateur) => {
-    this.setState(
-      (prevState) => ({
-        utilisateurs: prevState.utilisateurs.map((u) =>
-          u.id === utilisateur.id ? utilisateur : u
-        ),
-        utilisateurAEditer: null
-      }),
-      () => localStorage.setItem("utilisateurs", JSON.stringify(this.state.utilisateurs))
-    );
-  };
+  handleUpdate() {
+    const updatedCoders = [...this.state.coders];
+    updatedCoders[this.state.editingIndex] = {
+      prenom: this.state.prenomInput,
+      nom: this.state.nomInput,
+      email: this.state.emailInput,
+      telephone: this.state.telephoneInput,
+    };
+    this.setState({ coders: updatedCoders, editingIndex: -1 });
+    this.resetForm();
+  }
 
-  supprimerUtilisateur = (id) => {
-    this.setState(
-      (prevState) => ({
-        utilisateurs: prevState.utilisateurs.filter((u) => u.id !== id)
-      }),
-      () => localStorage.setItem("utilisateurs", JSON.stringify(this.state.utilisateurs))
-    );
-  };
+  handleDelete(index) {
+    const updatedCoders = this.state.coders.filter((_, i) => i !== index);
+    this.setState({ coders: updatedCoders });
+  }
 
-  gererModifier = (id) => {
-    const utilisateur = this.state.utilisateurs.find((u) => u.id === id);
-    this.setState({ utilisateurAEditer: utilisateur });
-  };
+  resetForm() {
+    this.setState({
+      prenomInput: '',
+      nomInput: '',
+      emailInput: '',
+      telephoneInput: '',
+    });
+  }
 
   render() {
-    const { utilisateurs, utilisateurAEditer } = this.state;
-
     return (
-      <div className="container mt-5">
-        <h1 className="text-center mb-4">Gestion des Utilisateurs</h1>
-        <FormulaireUtilisateur
-          onAjouterUtilisateur={this.ajouterUtilisateur}
-          onModifierUtilisateur={this.modifierUtilisateur}
-          utilisateur={utilisateurAEditer}
-        />
-        <TableauUtilisateur
-          utilisateurs={utilisateurs}
-          onModifier={this.gererModifier}
-          onSupprimer={this.supprimerUtilisateur}
-        />
+      <div className="py-4"> 
+        <p className="text-center">Jeemacoder gestion utilisateur</p>
+        <h1>{this.state.nomInput}</h1>
+        <div className="container">
+          <div style={{ maxWidth: 600, margin: 'auto' }}>
+            <div className="row">
+              <div className="col-6 p-1">
+                <label className="form-label">Prenom </label>
+                <input
+                  type="text"
+                  value={this.state.prenomInput}
+                  onChange={(e) => this.setState({ prenomInput: e.target.value })}
+                  className="form-control"
+                />
+              </div>
+              <div className="col-6 p-1">
+                <label className="form-label">Nom</label>
+                <input
+                  type="text"
+                  value={this.state.nomInput}
+                  onChange={(e) => this.setState({ nomInput: e.target.value })}
+                  className="form-control"
+                />
+              </div>
+            </div>
+
+            <div className="row">
+              <div className="col-6 p-1">
+                <label className="form-label">Email</label>
+                <input
+                  type="text"
+                  value={this.state.emailInput}
+                  onChange={(e) => this.setState({ emailInput: e.target.value })}
+                  className="form-control"
+                />
+              </div>
+              <div className="col-6 p-1">
+                <label className="form-label">Telephone</label>
+                <input
+                  type="text"
+                  value={this.state.telephoneInput}
+                  onChange={(e) => this.setState({ telephoneInput: e.target.value })}
+                  className="form-control"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={this.state.editingIndex === -1 ? this.handleClick : this.handleUpdate}
+              type="button"
+              className="btn btn-success w-100 mt-3"
+            >
+              {this.state.editingIndex === -1 ? 'Submit' : 'Modifier'}
+            </button>
+          </div>
+        </div>
+        <div className="mt-5 container">
+          <h3 className="text-center"> Coder</h3>
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">Prenom</th>
+                <th scope="col">Nom</th>
+                <th scope="col">Email</th>
+                <th scope="col">Telephone</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.coders.map((coder, index) => (
+                <tr key={index}>
+                  <td>{coder.prenom}</td>
+                  <td>{coder.nom}</td>
+                  <td>{coder.email}</td>
+                  <td>{coder.telephone}</td>
+                  <td>
+                    <button onClick={() => this.handleEdit(index)} className="btn btn-primary btn-sm me-2">Modifier</button>
+                    <button onClick={() => this.handleDelete(index)} className="btn btn-danger btn-sm">Supprimer</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }
 }
-// Rendu de l'application dans l'élément avec l'ID 'root'
-ReactDOM.render(<App />, document.getElementById("root"));
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<JeemaCoder/>);
