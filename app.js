@@ -7,12 +7,11 @@ class JeemaCoder extends React.Component {
       emailInput: '',
       telephoneInput: '',
       coders: [],
-      editingIndex: -1,
+      modifCoder: null
+
     };
     this.handleClick = this.handleClick.bind(this);
-    this.handleEdit = this.handleEdit.bind(this);
-    this.handleDelete = this.handleDelete.bind(this);
-    this.handleUpdate = this.handleUpdate.bind(this);
+    this.handleEditSubmit = this.handleEditSubmit.bind(this)
   }
 
   handleClick() {
@@ -22,50 +21,48 @@ class JeemaCoder extends React.Component {
       email: this.state.emailInput,
       telephone: this.state.telephoneInput,
     };
+    // Ajouter un nouveau codeur
     this.setState({ coders: [newCoder, ...this.state.coders] });
-    this.resetForm();
+    this.setState({
+      // vider le formulaire
+      prenomInput: '',
+      nomInput: '',
+      emailInput: '',
+      telephoneInput: ''
+    });
   }
 
-  handleEdit(index) {
-    const coder = this.state.coders[index];
+      // mise a jour 
+      handleEditSubmit(){
+        const updatedCoders = [...this.state.coders];
+        updatedCoders[this.state.editIndex] = {
+            prenom : this.state.prenomInput,
+            nom : this.state.nomInput,
+            email : this.state.emailInput,
+            telephone : this.state.telephoneInput,
+        };
+        this.setState({
+            coders : updatedCoders,
+            prenomInput : "",
+            nomInput : "",
+            emailInput : "",
+            telephoneInput : "",
+            editIndex : null
+        })
+    }
+  handleEdit(index){
+    const coder = this.state.coders[index]
     this.setState({
       prenomInput: coder.prenom,
       nomInput: coder.nom,
       emailInput: coder.email,
       telephoneInput: coder.telephone,
-      editingIndex: index,
-    });
-  }
-
-  handleUpdate() {
-    const updatedCoders = [...this.state.coders];
-    updatedCoders[this.state.editingIndex] = {
-      prenom: this.state.prenomInput,
-      nom: this.state.nomInput,
-      email: this.state.emailInput,
-      telephone: this.state.telephoneInput,
-    };
-    this.setState({ coders: updatedCoders, editingIndex: -1 });
-    this.resetForm();
-  }
-
-  handleDelete(index) {
-    const updatedCoders = this.state.coders.filter((_, i) => i !== index);
-    this.setState({ coders: updatedCoders });
-  }
-
-  resetForm() {
-    this.setState({
-      prenomInput: '',
-      nomInput: '',
-      emailInput: '',
-      telephoneInput: '',
-    });
-  }
-
+      // modifCoder: index
+      })
+      }
   render() {
     return (
-      <div className="py-4"> 
+      <div className="py-4">
         <p className="text-center">Jeemacoder gestion utilisateur</p>
         <h1>{this.state.nomInput}</h1>
         <div className="container">
@@ -76,16 +73,21 @@ class JeemaCoder extends React.Component {
                 <input
                   type="text"
                   value={this.state.prenomInput}
-                  onChange={(e) => this.setState({ prenomInput: e.target.value })}
+                  onChange={(e) => {
+                    this.setState({ prenomInput: e.target.value });
+                  }}
                   className="form-control"
                 />
               </div>
+
               <div className="col-6 p-1">
                 <label className="form-label">Nom</label>
                 <input
                   type="text"
                   value={this.state.nomInput}
-                  onChange={(e) => this.setState({ nomInput: e.target.value })}
+                  onChange={(e) => {
+                    this.setState({ nomInput: e.target.value });
+                  }}
                   className="form-control"
                 />
               </div>
@@ -97,33 +99,39 @@ class JeemaCoder extends React.Component {
                 <input
                   type="text"
                   value={this.state.emailInput}
-                  onChange={(e) => this.setState({ emailInput: e.target.value })}
+                  onChange={(e) => {
+                    this.setState({ emailInput: e.target.value });
+                  }}
                   className="form-control"
                 />
               </div>
+
               <div className="col-6 p-1">
                 <label className="form-label">Telephone</label>
                 <input
                   type="text"
                   value={this.state.telephoneInput}
-                  onChange={(e) => this.setState({ telephoneInput: e.target.value })}
+                  onChange={(e) => {
+                    this.setState({ telephoneInput: e.target.value });
+                  }}
                   className="form-control"
                 />
               </div>
             </div>
 
             <button
-              onClick={this.state.editingIndex === -1 ? this.handleClick : this.handleUpdate}
-              type="button"
+              onClick={this.handleClick}
+              type="btnSubmit"
               className="btn btn-success w-100 mt-3"
             >
-              {this.state.editingIndex === -1 ? 'Submit' : 'Modifier'}
+              Submit
             </button>
           </div>
         </div>
+
         <div className="mt-5 container">
           <h3 className="text-center"> Coder</h3>
-          <table className="table">
+          <table class="table">
             <thead>
               <tr>
                 <th scope="col">Prenom</th>
@@ -134,18 +142,24 @@ class JeemaCoder extends React.Component {
               </tr>
             </thead>
             <tbody>
-              {this.state.coders.map((coder, index) => (
-                <tr key={index}>
-                  <td>{coder.prenom}</td>
-                  <td>{coder.nom}</td>
-                  <td>{coder.email}</td>
-                  <td>{coder.telephone}</td>
-                  <td>
-                    <button onClick={() => this.handleEdit(index)} className="btn btn-primary btn-sm me-2">Modifier</button>
-                    <button onClick={() => this.handleDelete(index)} className="btn btn-danger btn-sm">Supprimer</button>
-                  </td>
-                </tr>
-              ))}
+              {this.state.coders.map((coder, index) => {
+                return (
+                  <tr>
+                    <td>{coder.prenom}</td>
+                    <td>{coder.nom}</td>
+                    <td>{coder.email}</td>
+                    <td>{coder.telephone}</td>
+                    <td>
+                    <button className= " btn btn-warning" 
+                      onClick={ () => this.handleEdit(index )}
+                      >
+                      Modifier
+                      </button>
+
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -155,4 +169,6 @@ class JeemaCoder extends React.Component {
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<JeemaCoder/>);
+root.render(<JeemaCoder />);
+
+
